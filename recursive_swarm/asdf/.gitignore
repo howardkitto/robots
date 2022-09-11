@@ -1,0 +1,16 @@
+node_modules
+.ipynb_checkpoints
+.vscode
+*.stl
+*.obj
+*.3dm
+*.3dm_tmp
+*.3dm.rhl
+*.3dmbak
+*.log
+*.objbak
+*.mtl
+*.psd
+*.ai
+*.mov
+.DS_Strore
