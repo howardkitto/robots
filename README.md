@@ -5,6 +5,8 @@ Code for the paper: ["Self-Replicating Hierarchical Modular Robotic Swarms"]().
 
 ## Interactive Web Demos
 
+- [Robot Self-Replication](https://amiraa.pages.cba.mit.edu/self-replicating-hierarchical-modular-robotic-swarms/recursive_swarm/demos/indexRecursion.html)
+- [Discrete Robotic Parametric Design Tool](https://amiraa.pages.cba.mit.edu/self-replicating-hierarchical-modular-robotic-swarms/recursive_swarm/demos/indexIK_parts.html)
 - [Serial Vs Hierarchical Construction](https://amiraa.pages.cba.mit.edu/self-replicating-hierarchical-robotic-swarms/recursive_swarm/demos/indexHierarchyExplanation.html)
 - [Build Sequence Visualization](https://amiraa.pages.cba.mit.edu/self-replicating-hierarchical-robotic-swarms/recursive_swarm/demos/indexBuitSequence_old.html)
 - [Small Path Planning Demo (2 levels)](https://amiraa.pages.cba.mit.edu/self-replicating-hierarchical-robotic-swarms/recursive_swarm/demos/indexCone.html)
