@@ -10,10 +10,23 @@
     <script src="../js/swarm_build.js"></script>
 
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
         #container {
             display: flex;
             height: 100vh;
 
+        }
+
+        #listArea {
+            flex: 1;
+            overflow-y: auto;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            padding: 10px;
         }
 
         #list {
@@ -35,7 +48,30 @@
         }
 
         li {
+            list-style-type: none;
             font-size: 18px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        li.has-open::before {
+            content: "▲";
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        li.has-closed::before {
+            content: "▼";
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        h1,
+        p {
+            margin: 0;
+            padding: 10px;
         }
     </style>
 </head>
@@ -43,8 +79,16 @@
 <body>
 
     <div id="container">
-        <ul id="list">
-        </ul>
+        <div id="listArea">
+            <h1>Hey Morgan</h1>
+            <p>You can use this to see what each layer of the JSON produces. </p>
+            <p>Drag the canvas to see the shape from different angles</p>
+            <p>Click the arrows below to drill down into the JSON</p>
+
+            <ul id="list">
+            </ul>
+        </div>
+
         <div id="webgl">
         </div>
     </div>
@@ -56,7 +100,8 @@
         document.getElementById("webgl").appendChild(renderer.domElement);
 
         const camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 1, 500);
-        camera.position.set(100, 20, 0);
+        //CHANGE THE CAMERA ANGLE HERE
+        camera.position.set(200, 20, 0);
         camera.lookAt(0, 0, 0);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -68,24 +113,17 @@
         }
 
         const scene = new THREE.Scene();
-
-        // Create a plane geometry
-        const planeGeometry = new THREE.PlaneGeometry(200, 200); // Adjust the size as needed
-
-        // Define a material for the plane
+        const planeGeometry = new THREE.PlaneGeometry(200, 200);
         const planeMaterial = new THREE.MeshBasicMaterial({
-            color: 0xAAAAAA, // Gray color for the plane
-            side: THREE.DoubleSide // Makes the plane visible from both sides
+            color: 0xAAAAAA,
+            side: THREE.DoubleSide
         });
 
-        // Create a mesh using the plane geometry and material
         const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
-        planeMesh.rotation.x = Math.PI / 2; // Rotate the plane to make it horizontal
-        planeMesh.position.y = -10; // Adjust the Y position to place the plane below your shapes
+        planeMesh.rotation.x = Math.PI / 2;
+        planeMesh.position.y = -10;
 
-        // Add the mesh to the scene
         scene.add(planeMesh);
-
 
         const colors = [
             "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF",
@@ -98,9 +136,44 @@
         var shift = 4.0;
         const vertices = [];
 
-        $.getJSON("../asdf/json/cubeCone3.json", function (json) {
+        //SWAP THE JSON HERE
+        $.getJSON("../asdf/json/cubeCone4.json", function (json) {
             const buildList = createBuildList(json, scale, shift);
             const container = document.getElementById("list");
+
+            const listZSize = buildList.listZ.length;
+            appendTextToContainer(`Number of listZ objects: ${listZSize}`, 0);
+
+            for (let i = 0; i < listZSize; i++) {
+                const listSizeLength = buildList.listZ[i].listSize.length;
+                appendTextToContainer(`listZ: ${i} number of listSize Objects: ${listSizeLength}`, 1, colors[i]);
+
+                for (let j = 0; j < listSizeLength; j++) {
+                    const listSDFLength = buildList.listZ[i].listSize[j].listSDF.length;
+                    appendTextToContainer(`listSize: ${j} number of listSDF Objects: ${listSDFLength}`, 2, colors[i]);
+
+                    for (let k = 0; k < listSDFLength; k++) {
+
+                        const listCubesLength = buildList.listZ[i].listSize[j].listSDF[k].listCubes.length
+                        appendTextToContainer(`listSDF: ${k} number of listCube Objects: ${listCubesLength}`, 3, colors[i]);
+
+                        for (let l = 0; l < listCubesLength; l++) {
+                            const position = buildList.listZ[i].listSize[j].listSDF[k].listCubes[l].position
+                            appendTextToContainer(`listCube: ${l} x: ${position.x} y: ${position.y} z: ${position.z}`, 4, colors[i]);
+
+                            const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+                            const boxMaterial = new THREE.MeshBasicMaterial({ color: colors[i] }); // Example color
+                            const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+                            boxMesh.position.set(position.x, position.z, position.y); // 'position' from the buildList
+                            scene.add(boxMesh);
+
+                        }
+                    }
+                }
+            }
+            animate()
+
+            //THIS STUFF MAKES THE NESTED LIST
 
             function toggleNestedList(event) {
 
@@ -109,8 +182,13 @@
                 if (nestedUl && nestedUl.tagName === 'UL') {
                     if (nestedUl.style.display === 'none' || !nestedUl.style.display) {
                         nestedUl.style.display = 'block';
+                        liElement.classList.add('has-open');
+                        liElement.classList.remove('has-closed');
                     } else {
                         nestedUl.style.display = 'none';
+                        liElement.classList.add('has-closed');
+                        liElement.classList.remove('has-open');
+
                     }
                 }
             }
@@ -118,59 +196,25 @@
             function appendTextToContainer(text, indentationLevel, color) {
                 const liElement = document.createElement("li");
                 liElement.textContent = text;
+                liElement.classList.add('has-closed');
 
-                if(color){
+                if (color) {
                     liElement.style.color = color
                 }
-                
+
                 liElement.addEventListener('click', toggleNestedList);
 
                 let parentUl = container;
                 for (let i = 0; i < indentationLevel; i++) {
                     if (!parentUl.lastChild || parentUl.lastChild.tagName !== "UL") {
                         const ulElement = document.createElement("ul");
-                        ulElement.style.display = 'none'; // Initially hide the nested lists
+                        ulElement.style.display = 'none';
                         parentUl.appendChild(ulElement);
                     }
                     parentUl = parentUl.lastChild;
                 }
                 parentUl.appendChild(liElement);
             }
-
-            // const points = [];
-            const listZSize = buildList.listZ.length;
-            appendTextToContainer(`Number of listZ objects: ${listZSize}`, 0);
-
-            for (let i = 0; i < listZSize; i++) {
-                const listSizeLength = buildList.listZ[i].listSize.length;
-                appendTextToContainer(`listZ: ${i} number of listSize Objects: ${listSizeLength}`, 1);
-
-                for (let j = 0; j < listSizeLength; j++) {
-                    const listSDFLength = buildList.listZ[i].listSize[j].listSDF.length;
-                    appendTextToContainer(`listSize: ${j} number of listSDF Objects: ${listSDFLength}`, 2);
-
-                    for (let k = 0; k < listSDFLength; k++) {
-
-                        const listCubesLength = buildList.listZ[i].listSize[j].listSDF[k].listCubes.length
-                        appendTextToContainer(`listSDF: ${k} number of listCube Objects: ${listCubesLength}`, 3, colors[k]);
-                        
-                        for (let l = 0; l < listCubesLength; l++) {
-                            const position = buildList.listZ[i].listSize[j].listSDF[k].listCubes[l].position
-                            appendTextToContainer(`listCube: ${l} x: ${position.x} y: ${position.y} z: ${position.z}`, 4);
-                            
-                            const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-                            const boxMaterial = new THREE.MeshBasicMaterial({ color: colors[k] }); // Example color
-                            const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
-                            boxMesh.position.set(position.x, position.z, position.y); // 'position' from the buildList
-                            scene.add(boxMesh);
-
-
-                        }
-
-                    }
-                }
-            }
-            animate()
 
         });
 
