@@ -87,8 +87,6 @@
             </select>
             <p>Drag the canvas to see the shape from different angles</p>
             <p>Click the arrows below to drill down into the JSON</p>
-           
-
             <ul id="list">
             </ul>
         </div>
@@ -98,8 +96,6 @@
     </div>
 
     <script>
-
-
 
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -155,97 +151,105 @@
         var selectedFile = 0
 
         dropdown.addEventListener('change', function () {
-            // Update the JavaScript variable with the selected value
             selectedFile = dropdown.value;
             loadJSON(selectedFile)
             console.log("Selected Value:", selectedFile);
         });
 
-        //SWAP THE JSON HERE
         function loadJSON(selectedFile) {
-        $.getJSON(`../asdf/json/${jsonFiles[selectedFile]}.json`, function (json) {
-            const buildList = createBuildList(json, scale, shift);
-            const container = document.getElementById("list");
+            while (scene.children.length > 0) {
+                scene.remove(scene.children[0]);
+            }
+            scene.add(planeMesh); // Add the plane back
 
-            const listZSize = buildList.listZ.length;
-            appendTextToContainer(`Number of listZ objects: ${listZSize}`, 0);
+            // Clear the previous list
+            const list = document.getElementById("list");
+            while (list.firstChild) {
+                list.removeChild(list.firstChild);
+            }
+            $.getJSON(`../asdf/json/${jsonFiles[selectedFile]}.json`, function (json) {
+                const buildList = createBuildList(json, scale, shift);
+                const container = document.getElementById("list");
 
-            for (let i = 0; i < listZSize; i++) {
-                const listSizeLength = buildList.listZ[i].listSize.length;
-                appendTextToContainer(`listZ: ${i} number of listSize Objects: ${listSizeLength}`, 1, colors[i]);
+                const listZSize = buildList.listZ.length;
+                appendTextToContainer(`Number of listZ objects: ${listZSize}`, 0);
 
-                for (let j = 0; j < listSizeLength; j++) {
-                    const listSDFLength = buildList.listZ[i].listSize[j].listSDF.length;
-                    appendTextToContainer(`listSize: ${j} number of listSDF Objects: ${listSDFLength}`, 2, colors[i]);
+                for (let i = 0; i < listZSize; i++) {
+                    const listSizeLength = buildList.listZ[i].listSize.length;
+                    appendTextToContainer(`listZ: ${i} number of listSize Objects: ${listSizeLength}`, 1, colors[i]);
 
-                    for (let k = 0; k < listSDFLength; k++) {
+                    for (let j = 0; j < listSizeLength; j++) {
+                        const listSDFLength = buildList.listZ[i].listSize[j].listSDF.length;
+                        appendTextToContainer(`listSize: ${j} number of listSDF Objects: ${listSDFLength}`, 2, colors[i]);
 
-                        const listCubesLength = buildList.listZ[i].listSize[j].listSDF[k].listCubes.length
-                        appendTextToContainer(`listSDF: ${k} number of listCube Objects: ${listCubesLength}`, 3, colors[i]);
+                        for (let k = 0; k < listSDFLength; k++) {
 
-                        for (let l = 0; l < listCubesLength; l++) {
-                            const position = buildList.listZ[i].listSize[j].listSDF[k].listCubes[l].position
-                            appendTextToContainer(`listCube: ${l} x: ${position.x} y: ${position.y} z: ${position.z}`, 4, colors[i]);
+                            const listCubesLength = buildList.listZ[i].listSize[j].listSDF[k].listCubes.length
+                            appendTextToContainer(`listSDF: ${k} number of listCube Objects: ${listCubesLength}`, 3, colors[i]);
 
-                            const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-                            const boxMaterial = new THREE.MeshBasicMaterial({ color: colors[i] }); // Example color
-                            const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
-                            boxMesh.position.set(position.x, position.z, position.y); // 'position' from the buildList
-                            scene.add(boxMesh);
+                            for (let l = 0; l < listCubesLength; l++) {
+                                const position = buildList.listZ[i].listSize[j].listSDF[k].listCubes[l].position
+                                appendTextToContainer(`listCube: ${l} x: ${position.x} y: ${position.y} z: ${position.z}`, 4, colors[i]);
+
+                                const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+                                const boxMaterial = new THREE.MeshBasicMaterial({ color: colors[i] }); // Example color
+                                const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+                                boxMesh.position.set(position.x, position.z, position.y); // 'position' from the buildList
+                                scene.add(boxMesh);
+
+                            }
+                        }
+                    }
+                }
+                animate()
+
+                //THIS STUFF MAKES THE NESTED LIST
+
+                function toggleNestedList(event) {
+
+                    const liElement = event.currentTarget;
+                    const nestedUl = liElement.nextElementSibling;
+                    if (nestedUl && nestedUl.tagName === 'UL') {
+                        if (nestedUl.style.display === 'none' || !nestedUl.style.display) {
+                            nestedUl.style.display = 'block';
+                            liElement.classList.add('has-open');
+                            liElement.classList.remove('has-closed');
+                        } else {
+                            nestedUl.style.display = 'none';
+                            liElement.classList.add('has-closed');
+                            liElement.classList.remove('has-open');
 
                         }
                     }
                 }
-            }
-            animate()
 
-            //THIS STUFF MAKES THE NESTED LIST
+                function appendTextToContainer(text, indentationLevel, color) {
+                    const liElement = document.createElement("li");
+                    liElement.textContent = text;
+                    liElement.classList.add('has-closed');
 
-            function toggleNestedList(event) {
-
-                const liElement = event.currentTarget;
-                const nestedUl = liElement.nextElementSibling;
-                if (nestedUl && nestedUl.tagName === 'UL') {
-                    if (nestedUl.style.display === 'none' || !nestedUl.style.display) {
-                        nestedUl.style.display = 'block';
-                        liElement.classList.add('has-open');
-                        liElement.classList.remove('has-closed');
-                    } else {
-                        nestedUl.style.display = 'none';
-                        liElement.classList.add('has-closed');
-                        liElement.classList.remove('has-open');
-
+                    if (color) {
+                        liElement.style.color = color
                     }
-                }
-            }
 
-            function appendTextToContainer(text, indentationLevel, color) {
-                const liElement = document.createElement("li");
-                liElement.textContent = text;
-                liElement.classList.add('has-closed');
+                    liElement.addEventListener('click', toggleNestedList);
 
-                if (color) {
-                    liElement.style.color = color
-                }
-
-                liElement.addEventListener('click', toggleNestedList);
-
-                let parentUl = container;
-                for (let i = 0; i < indentationLevel; i++) {
-                    if (!parentUl.lastChild || parentUl.lastChild.tagName !== "UL") {
-                        const ulElement = document.createElement("ul");
-                        ulElement.style.display = 'none';
-                        parentUl.appendChild(ulElement);
+                    let parentUl = container;
+                    for (let i = 0; i < indentationLevel; i++) {
+                        if (!parentUl.lastChild || parentUl.lastChild.tagName !== "UL") {
+                            const ulElement = document.createElement("ul");
+                            ulElement.style.display = 'none';
+                            parentUl.appendChild(ulElement);
+                        }
+                        parentUl = parentUl.lastChild;
                     }
-                    parentUl = parentUl.lastChild;
+                    parentUl.appendChild(liElement);
                 }
-                parentUl.appendChild(liElement);
-            }
 
-        });
-    }
+            });
+        }
 
-    loadJSON(selectedFile)
+        loadJSON(selectedFile)
     </script>
 </body>
 
