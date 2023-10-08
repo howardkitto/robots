@@ -299,6 +299,8 @@ Swarm.prototype.deleteVoxelAt= function(robotIndex,loc){ //loc is index
 };
 
 Swarm.prototype.createHierarchalSDFVoxelList=function(){
+
+	console.log(">===HERE===<")
 	this.voxelIndexList=[
         null,
         {
@@ -439,6 +441,7 @@ Swarm.prototype.createHierarchalSDFVoxelList=function(){
 };
 
 Swarm.prototype.createHierarchalVoxelList=function(){
+	
 	this.voxelIndexList=[
 		new THREE.Vector3(0,0,1),
 		new THREE.Vector3(0,1,1),
@@ -475,6 +478,7 @@ Swarm.prototype.createHierarchalVoxelList=function(){
 	i=0;
 	this.voxelList.push({rank:this.robotScale[i],list:[],originalList:[],assembled:false,pickedUp:false})
 	for (var j=0; j<this.voxelIndexList.length;j++){
+		
 		this.voxelList[i].list.push(
 			this.voxelIndexList[j].clone()
 			.add(this.startLocations[i].clone().multiplyScalar(1/this.voxelSpacing[i]))

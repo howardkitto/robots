@@ -3,7 +3,6 @@
 
 function createBuildList(json,scale,shift){ //layer first
 
-    console.log("Here" + scale)
 	///layer first
 
     var buildList={

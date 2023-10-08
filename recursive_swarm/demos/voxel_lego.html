@@ -25,14 +25,26 @@
             width: 75%;
             height: 100vh;
         }
+
+        .open {
+            display: block;
+        }
+
+        .closed {
+            display: none;
+        }
+
+        li {
+            font-size: 18px;
+        }
     </style>
 </head>
 
 <body>
 
     <div id="container">
-        <div id="list">
-        </div>
+        <ul id="list">
+        </ul>
         <div id="webgl">
         </div>
     </div>
@@ -44,8 +56,16 @@
         document.getElementById("webgl").appendChild(renderer.domElement);
 
         const camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 1, 500);
-        camera.position.set(100, 0, 100);
+        camera.position.set(100, 20, 0);
         camera.lookAt(0, 0, 0);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
 
         const scene = new THREE.Scene();
 
@@ -78,15 +98,43 @@
         var shift = 4.0;
         const vertices = [];
 
-        $.getJSON("../asdf/json/cubeCone.json", function (json) {
+        $.getJSON("../asdf/json/cubeCone3.json", function (json) {
             const buildList = createBuildList(json, scale, shift);
             const container = document.getElementById("list");
 
-            function appendTextToContainer(text, indentationLevel) {
-                const pElement = document.createElement("p");
-                pElement.textContent = text;
-                pElement.style.marginLeft = `${indentationLevel * 20}px`; // Indent by 20px for each level
-                container.appendChild(pElement);
+            function toggleNestedList(event) {
+
+                const liElement = event.currentTarget;
+                const nestedUl = liElement.nextElementSibling;
+                if (nestedUl && nestedUl.tagName === 'UL') {
+                    if (nestedUl.style.display === 'none' || !nestedUl.style.display) {
+                        nestedUl.style.display = 'block';
+                    } else {
+                        nestedUl.style.display = 'none';
+                    }
+                }
+            }
+
+            function appendTextToContainer(text, indentationLevel, color) {
+                const liElement = document.createElement("li");
+                liElement.textContent = text;
+
+                if(color){
+                    liElement.style.color = color
+                }
+                
+                liElement.addEventListener('click', toggleNestedList);
+
+                let parentUl = container;
+                for (let i = 0; i < indentationLevel; i++) {
+                    if (!parentUl.lastChild || parentUl.lastChild.tagName !== "UL") {
+                        const ulElement = document.createElement("ul");
+                        ulElement.style.display = 'none'; // Initially hide the nested lists
+                        parentUl.appendChild(ulElement);
+                    }
+                    parentUl = parentUl.lastChild;
+                }
+                parentUl.appendChild(liElement);
             }
 
             // const points = [];
@@ -104,28 +152,26 @@
                     for (let k = 0; k < listSDFLength; k++) {
 
                         const listCubesLength = buildList.listZ[i].listSize[j].listSDF[k].listCubes.length
-                        appendTextToContainer(`listSDF: ${k} number of listCube Objects: ${listCubesLength}`, 3);
-                        const points = [];
+                        appendTextToContainer(`listSDF: ${k} number of listCube Objects: ${listCubesLength}`, 3, colors[k]);
+                        
                         for (let l = 0; l < listCubesLength; l++) {
                             const position = buildList.listZ[i].listSize[j].listSDF[k].listCubes[l].position
                             appendTextToContainer(`listCube: ${l} x: ${position.x} y: ${position.y} z: ${position.z}`, 4);
-                            points.push(position);
-                            // After collecting every fourth point, create the geometry and add the line to the scene
-                            if ((l + 1) % 4 === 0) {                                
-                                const geometry = new THREE.BufferGeometry().setFromPoints(points);
-                                const material = new THREE.LineBasicMaterial({ color: colors[k] });
-                                const line = new THREE.Line(geometry, material);
-                                scene.add(line);
-                                points.length = 0; // Clear the points array for the next group of 4 points
-                            }
+                            
+                            const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+                            const boxMaterial = new THREE.MeshBasicMaterial({ color: colors[k] }); // Example color
+                            const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+                            boxMesh.position.set(position.x, position.z, position.y); // 'position' from the buildList
+                            scene.add(boxMesh);
+
 
                         }
 
                     }
                 }
             }
+            animate()
 
-            renderer.render(scene, camera);
         });
 
     </script>

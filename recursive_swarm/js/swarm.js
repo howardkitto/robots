@@ -197,6 +197,7 @@ function Swarm(setup){
 	
 
 	if(this.hierarchical&& (this.buildType=="sdfList"||this.buildType=="sdfList1")){
+		
 		this.buildList=setup.buildList;
 		this.buildList.availablePickup=[];
 		this.buildList.listToBuild=[];
@@ -227,6 +228,7 @@ function Swarm(setup){
 	if(this.buildType=="list"){
 
 		this.voxelList=[];
+		
 		this.createHierarchalVoxelList();
 
 	}else if(this.buildType=="recursion"){
