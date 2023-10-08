@@ -10,7 +10,7 @@ setup={};
 setup.nodes=[];
 setup.edges=[];
 setup.viz={};
-setup.viz.colorMaps=[YlGnBu,coolwarm, winter ,jet];
+setup.viz.colorMaps=[YlGnBu, coolwarm, winter, jet];
 var colormap=YlGnBu;
 var maxOrder;
 

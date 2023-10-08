@@ -4,6 +4,8 @@
 
 THREE.OBJLoader = ( function () {
 
+	console.log("I hit the object loader")
+
 	// o object_name | g group_name
 	var object_pattern = /^[og]\s*(.+)?/;
 	// mtllib file_reference

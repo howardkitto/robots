@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Lego Voxels Visualization</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="../lib/three.min.js"></script>
+    <script src="../lib/OrbitControls.js"></script>
+
+    <script src="../js/swarm_build.js"></script>
+
+    <style>
+        #container {
+            display: flex;
+            height: 100vh;
+
+        }
+
+        #list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        #webgl {
+            width: 75%;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="list">
+        </div>
+        <div id="webgl">
+        </div>
+    </div>
+
+    <script>
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById("webgl").appendChild(renderer.domElement);
+
+        const camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 1, 500);
+        camera.position.set(100, 0, 100);
+        camera.lookAt(0, 0, 0);
+
+        const scene = new THREE.Scene();
+
+        // Create a plane geometry
+        const planeGeometry = new THREE.PlaneGeometry(200, 200); // Adjust the size as needed
+
+        // Define a material for the plane
+        const planeMaterial = new THREE.MeshBasicMaterial({
+            color: 0xAAAAAA, // Gray color for the plane
+            side: THREE.DoubleSide // Makes the plane visible from both sides
+        });
+
+        // Create a mesh using the plane geometry and material
+        const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
+        planeMesh.rotation.x = Math.PI / 2; // Rotate the plane to make it horizontal
+        planeMesh.position.y = -10; // Adjust the Y position to place the plane below your shapes
+
+        // Add the mesh to the scene
+        scene.add(planeMesh);
+
+
+        const colors = [
+            "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF",
+            "#FF00FF", "#C0C0C0", "#808080", "#800000", "#808000",
+            "#008000", "#800080", "#008080", "#000080"
+        ];
+
+
+        var scale = 12.0;
+        var shift = 4.0;
+        const vertices = [];
+
+        $.getJSON("../asdf/json/cubeCone.json", function (json) {
+            const buildList = createBuildList(json, scale, shift);
+            const container = document.getElementById("list");
+
+            function appendTextToContainer(text, indentationLevel) {
+                const pElement = document.createElement("p");
+                pElement.textContent = text;
+                pElement.style.marginLeft = `${indentationLevel * 20}px`; // Indent by 20px for each level
+                container.appendChild(pElement);
+            }
+
+            // const points = [];
+            const listZSize = buildList.listZ.length;
+            appendTextToContainer(`Number of listZ objects: ${listZSize}`, 0);
+
+            for (let i = 0; i < listZSize; i++) {
+                const listSizeLength = buildList.listZ[i].listSize.length;
+                appendTextToContainer(`listZ: ${i} number of listSize Objects: ${listSizeLength}`, 1);
+
+                for (let j = 0; j < listSizeLength; j++) {
+                    const listSDFLength = buildList.listZ[i].listSize[j].listSDF.length;
+                    appendTextToContainer(`listSize: ${j} number of listSDF Objects: ${listSDFLength}`, 2);
+
+                    for (let k = 0; k < listSDFLength; k++) {
+
+                        const listCubesLength = buildList.listZ[i].listSize[j].listSDF[k].listCubes.length
+                        appendTextToContainer(`listSDF: ${k} number of listCube Objects: ${listCubesLength}`, 3);
+                        const points = [];
+                        for (let l = 0; l < listCubesLength; l++) {
+                            const position = buildList.listZ[i].listSize[j].listSDF[k].listCubes[l].position
+                            appendTextToContainer(`listCube: ${l} x: ${position.x} y: ${position.y} z: ${position.z}`, 4);
+                            points.push(position);
+                            // After collecting every fourth point, create the geometry and add the line to the scene
+                            if ((l + 1) % 4 === 0) {                                
+                                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                                const material = new THREE.LineBasicMaterial({ color: colors[k] });
+                                const line = new THREE.Line(geometry, material);
+                                scene.add(line);
+                                points.length = 0; // Clear the points array for the next group of 4 points
+                            }
+
+                        }
+
+                    }
+                }
+            }
+
+            renderer.render(scene, camera);
+        });
+
+    </script>
+</body>
+
+</html>

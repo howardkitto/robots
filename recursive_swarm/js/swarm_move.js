@@ -146,7 +146,6 @@ Swarm.prototype.voxelBuilderList= function(robotIndex,leg1Pos, leg2Pos, up ,forw
 			this.robotState[robotIndex].up=state[2].clone();
 			this.robotState[robotIndex].forward=state[3].clone();
 			succeeded=state[4];
-
 			if(succeeded)
 			{
 				return [state[0],state[1],state[2],state[3]];
