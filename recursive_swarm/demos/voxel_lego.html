@@ -82,8 +82,12 @@
         <div id="listArea">
             <h1>Hey Morgan</h1>
             <p>You can use this to see what each layer of the JSON produces. </p>
+            <p>Select JSON here</p>
+            <select id="dropdown">
+            </select>
             <p>Drag the canvas to see the shape from different angles</p>
             <p>Click the arrows below to drill down into the JSON</p>
+           
 
             <ul id="list">
             </ul>
@@ -94,6 +98,8 @@
     </div>
 
     <script>
+
+
 
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -125,19 +131,39 @@
 
         scene.add(planeMesh);
 
+        var scale = 12.0;
+        var shift = 4.0;
+        const vertices = [];
+
         const colors = [
             "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF",
             "#FF00FF", "#C0C0C0", "#808080", "#800000", "#808000",
             "#008000", "#800080", "#008080", "#000080"
         ];
 
+        const jsonFiles = ["cubeCone", "cubeConeSize", "cubeCone2", "cubeCone2Size", "cubeCone3", "cubeCone3Size", "cubeCone4", "cubeCone4Size"]
 
-        var scale = 12.0;
-        var shift = 4.0;
-        const vertices = [];
+        const dropdown = document.getElementById('dropdown');
+
+        jsonFiles.forEach((file, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = file;
+            dropdown.appendChild(option);
+        });
+
+        var selectedFile = 0
+
+        dropdown.addEventListener('change', function () {
+            // Update the JavaScript variable with the selected value
+            selectedFile = dropdown.value;
+            loadJSON(selectedFile)
+            console.log("Selected Value:", selectedFile);
+        });
 
         //SWAP THE JSON HERE
-        $.getJSON("../asdf/json/cubeCone4.json", function (json) {
+        function loadJSON(selectedFile) {
+        $.getJSON(`../asdf/json/${jsonFiles[selectedFile]}.json`, function (json) {
             const buildList = createBuildList(json, scale, shift);
             const container = document.getElementById("list");
 
@@ -217,7 +243,9 @@
             }
 
         });
+    }
 
+    loadJSON(selectedFile)
     </script>
 </body>
 
